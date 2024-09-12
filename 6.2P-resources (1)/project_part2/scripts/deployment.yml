@@ -1,0 +1,47 @@
+# Deployment configuration for the my-books application
+apiVersion: apps/v1 # The API version used for the Deployment resource
+kind: Deployment # Specifies this resource is a Deployment
+metadata:
+  name: my-books # Name of the Deployment
+
+spec:
+  replicas: 1 # Specifies the number of pod replicas (1 instance of the application)
+  selector:
+    matchLabels:
+      app: my-books # Select pods with this label to be managed by the Deployment
+  template:
+    metadata:
+      labels:
+        app: my-books # Label to identify this pod, used by the Service selector
+
+    spec:
+      containers:
+        - name: my-books # Name of the container inside the pod
+          image: sit722week6:1 # Docker image to be used by the container (local image)
+          ports:
+            - containerPort: 8000 # Container will listen on port 8000
+          imagePullPolicy: Never # Prevent Kubernetes from pulling the image from a remote registry
+
+          # Environment variables for the container
+          env:
+            - name: DATABASE_URL # Name of the environment variable
+              value: "postgresql://sit722week6_user:8hsgcFFOYVJSoRShZ0rOM53O7rKcwuLD@dpg-cre3dd5svqrc73fdnmq0-a.oregon-postgres.render.com/sit722week6"
+              # Database connection URL for PostgreSQL
+
+---
+# Service configuration to expose the my-books application
+apiVersion: v1 # The API version used for the Service resource
+kind: Service # Specifies this resource is a Service
+metadata:
+  name: my-books # Name of the Service
+
+spec:
+  selector:
+    app: my-books # This service will route traffic to pods with this label
+
+  type: NodePort # Expose the service via a NodePort, making it accessible externally
+
+  ports:
+    - protocol: TCP # Communication will be done over the TCP protocol
+      port: 8000 # The service will listen on port 8000
+      targetPort: 8000 # Forward traffic to port 8000 of the pod/container
